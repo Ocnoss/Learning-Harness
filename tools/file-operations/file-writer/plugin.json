@@ -1,0 +1,8 @@
+{
+  "name": "file-writer",
+  "version": "1.0.0",
+  "description": "创建/覆盖/追加文件，自动创建父目录",
+  "type": "utility",
+  "recommended_tier": "fast",
+  "recommended_thinking": "low"
+}

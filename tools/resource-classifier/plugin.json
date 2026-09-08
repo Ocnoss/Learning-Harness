@@ -1,0 +1,66 @@
+{
+  "name": "resource-classifier",
+  "version": "1.0.0",
+  "description": "学习资源分类工具 - 将文件分类为教材/讲义/笔记/题集/题解/其他",
+  "type": "tool",
+  "author": "",
+  "entry": "main.py",
+  "dependencies": [],
+  "recommended_tier": "fast",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "file_path": {
+        "type": "string",
+        "description": "单个文件路径"
+      },
+      "folder_path": {
+        "type": "string",
+        "description": "文件夹路径（批量分类）"
+      },
+      "max_depth": {
+        "type": "integer",
+        "default": 3,
+        "description": "最大递归深度（仅 folder_path 模式）"
+      },
+      "sample_pages": {
+        "type": "integer",
+        "default": 3,
+        "description": "PDF 采样页数"
+      },
+      "use_content": {
+        "type": "boolean",
+        "default": true,
+        "description": "是否读取文件内容（false 时仅使用文件名）"
+      }
+    },
+    "required": []
+  },
+  "output_schema": {
+    "type": "object",
+    "properties": {
+      "classifications": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "file_path": {"type": "string"},
+            "file_name": {"type": "string"},
+            "category": {"type": "string", "enum": ["教材", "讲义", "笔记", "题集", "题解", "其他"]},
+            "confidence": {"type": "string", "enum": ["high", "medium", "low"]},
+            "reason": {"type": "string"},
+            "method": {"type": "string", "enum": ["filename", "content", "llm"]}
+          }
+        }
+      },
+      "summary": {
+        "type": "object",
+        "properties": {
+          "total": {"type": "integer"},
+          "by_category": {"type": "object"}
+        }
+      },
+      "llm_calls": {"type": "integer"}
+    }
+  }
+}

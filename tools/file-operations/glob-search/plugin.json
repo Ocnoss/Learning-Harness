@@ -1,0 +1,8 @@
+{
+  "name": "glob-search",
+  "version": "1.0.0",
+  "description": "按模式搜索文件，遵守 .gitignore",
+  "type": "utility",
+  "recommended_tier": "fast",
+  "recommended_thinking": "low"
+}

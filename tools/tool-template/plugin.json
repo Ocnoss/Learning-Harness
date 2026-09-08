@@ -1,0 +1,29 @@
+{
+  "name": "tool-template",
+  "version": "1.0.0",
+  "description": "工具模板 - 复制此目录创建新工具",
+  "type": "tool",
+  "author": "",
+  "entry": "main.py",
+  "dependencies": [],
+  "recommended_tier": "balanced",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "input_text": {
+        "type": "string",
+        "description": "输入文本"
+      }
+    },
+    "required": ["input_text"]
+  },
+  "output_schema": {
+    "type": "object",
+    "properties": {
+      "output_text": {
+        "type": "string",
+        "description": "输出文本"
+      }
+    }
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "name": "quiz-app",
+  "version": "1.0.0",
+  "description": "刷题工具 - 加载题目文件进行刷题练习",
+  "type": "tool",
+  "author": "",
+  "entry": "main.py",
+  "dependencies": ["question-splitter"],
+  "recommended_tier": null,
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "question_file": {
+        "type": "string",
+        "description": "题目文件路径（JSON 格式）"
+      },
+      "mode": {
+        "type": "string",
+        "enum": ["sequential", "random", "review"],
+        "default": "sequential",
+        "description": "刷题模式：sequential=顺序，random=随机，review=复习错题"
+      },
+      "count": {
+        "type": "integer",
+        "default": 10,
+        "description": "刷题数量"
+      },
+      "progress_file": {
+        "type": "string",
+        "description": "进度文件路径（用于保存和恢复进度）"
+      }
+    },
+    "required": ["question_file"]
+  },
+  "output_schema": {
+    "type": "object",
+    "properties": {
+      "total": {"type": "integer", "description": "总题数"},
+      "correct": {"type": "integer", "description": "正确数"},
+      "accuracy": {"type": "number", "description": "正确率"},
+      "history": {"type": "array", "description": "答题记录"},
+      "wrong_questions": {"type": "array", "description": "错题列表"}
+    }
+  }
+}

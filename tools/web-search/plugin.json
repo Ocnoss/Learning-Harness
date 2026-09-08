@@ -1,0 +1,8 @@
+{
+  "name": "web-search",
+  "version": "1.0.0",
+  "description": "网络搜索，返回标题/URL/摘要",
+  "type": "utility",
+  "recommended_tier": "fast",
+  "recommended_thinking": "low"
+}

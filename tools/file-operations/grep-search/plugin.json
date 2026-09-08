@@ -1,0 +1,8 @@
+{
+  "name": "grep-search",
+  "version": "1.0.0",
+  "description": "正则搜索文件内容，支持上下文和过滤",
+  "type": "utility",
+  "recommended_tier": "fast",
+  "recommended_thinking": "low"
+}

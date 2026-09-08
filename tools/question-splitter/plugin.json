@@ -1,0 +1,55 @@
+{
+  "name": "question-splitter",
+  "version": "1.0.0",
+  "description": "PDF 分题工具 - 从题库 PDF 中提取单题和解析",
+  "type": "tool",
+  "author": "",
+  "entry": "main.py",
+  "dependencies": [],
+  "recommended_tier": "fast",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "pdf_path": {
+        "type": "string",
+        "description": "PDF 文件路径"
+      },
+      "output_dir": {
+        "type": "string",
+        "description": "输出目录路径"
+      },
+      "use_llm_validation": {
+        "type": "boolean",
+        "default": true,
+        "description": "是否使用 LLM 校验边界（提高准确性但增加成本）"
+      },
+      "question_pattern": {
+        "type": "string",
+        "description": "自定义题号正则表达式（可选）"
+      }
+    },
+    "required": ["pdf_path"]
+  },
+  "output_schema": {
+    "type": "object",
+    "properties": {
+      "questions": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {"type": "integer"},
+            "content": {"type": "string"},
+            "options": {"type": "array", "items": {"type": "string"}},
+            "answer": {"type": "string"},
+            "analysis": {"type": "string"}
+          }
+        },
+        "description": "题目列表"
+      },
+      "total_count": {"type": "integer", "description": "题目总数"},
+      "llm_calls": {"type": "integer", "description": "LLM 调用次数"},
+      "output_file": {"type": "string", "description": "输出文件路径"}
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "name": "memory-manager",
+  "version": "1.0.0",
+  "description": "记忆管理工具 - 存储、检索、管理对话历史和执行记忆",
+  "type": "utility",
+  "recommended_tier": "fast",
+  "recommended_thinking": "low",
+  "capabilities": [
+    "store_memory",
+    "retrieve_memory",
+    "search_memory",
+    "summarize_history",
+    "clear_memory"
+  ]
+}

@@ -1,0 +1,52 @@
+{
+  "name": "token-counter",
+  "version": "1.0.0",
+  "description": "LLM 调用统计工具 - 记录 token 消耗和输出速度",
+  "type": "tool",
+  "author": "",
+  "entry": "main.py",
+  "dependencies": [],
+  "recommended_tier": null,
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "action": {
+        "type": "string",
+        "enum": ["record", "stats", "report", "clear"],
+        "description": "操作类型：record=记录调用，stats=查询统计，report=生成报告，clear=清除记录"
+      },
+      "start_time": {
+        "type": "string",
+        "description": "统计开始时间（ISO 8601 格式），可选"
+      },
+      "end_time": {
+        "type": "string",
+        "description": "统计结束时间（ISO 8601 格式），可选"
+      },
+      "record_data": {
+        "type": "object",
+        "description": "record 操作时的调用数据",
+        "properties": {
+          "model": {"type": "string"},
+          "tier": {"type": "string"},
+          "input_tokens": {"type": "integer"},
+          "output_tokens": {"type": "integer"},
+          "duration_ms": {"type": "number"},
+          "tool_name": {"type": "string"}
+        }
+      }
+    },
+    "required": ["action"]
+  },
+  "output_schema": {
+    "type": "object",
+    "properties": {
+      "total_calls": {"type": "integer", "description": "总调用次数"},
+      "total_input_tokens": {"type": "integer", "description": "总输入 token 数"},
+      "total_output_tokens": {"type": "integer", "description": "总输出 token 数"},
+      "avg_speed": {"type": "number", "description": "平均输出速度 (tokens/s)"},
+      "records": {"type": "array", "description": "调用记录列表"},
+      "report": {"type": "string", "description": "统计报告（Markdown 格式）"}
+    }
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "fast": {
+    "provider": "OpenAI",
+    "model": "your-fast-model-name",
+    "api_key": "sk-your-api-key-here",
+    "base_url": "https://api.openai.com/v1"
+  },
+  "balanced": {
+    "provider": "OpenAI",
+    "model": "your-balanced-model-name",
+    "api_key": "sk-your-api-key-here",
+    "base_url": "https://api.openai.com/v1"
+  },
+  "flagship": {
+    "provider": "OpenAI",
+    "model": "your-flagship-model-name",
+    "api_key": "sk-your-api-key-here",
+    "base_url": "https://api.openai.com/v1"
+  }
+}

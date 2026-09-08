@@ -1,0 +1,27 @@
+{
+  "name": "core",
+  "version": "1.0.0",
+  "description": "LLM 基础插件，提供统一的 LLM 调用接口、工具基类和工作流引擎",
+  "type": "core",
+  "provides": ["llm_client", "base_tool", "workflow_engine"],
+  "config_schema": {
+    "llm_provider": {
+      "type": "string",
+      "enum": ["openai", "anthropic", "local", "custom"],
+      "default": "openai"
+    },
+    "api_key": {
+      "type": "string",
+      "required": true,
+      "env": "LLM_API_KEY"
+    },
+    "model": {
+      "type": "string",
+      "default": "gpt-4"
+    },
+    "base_url": {
+      "type": "string",
+      "required": false
+    }
+  }
+}

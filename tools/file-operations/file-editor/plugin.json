@@ -1,0 +1,8 @@
+{
+  "name": "file-editor",
+  "version": "1.0.0",
+  "description": "精确字符串替换，强制先读后改",
+  "type": "utility",
+  "recommended_tier": "fast",
+  "recommended_thinking": "low"
+}

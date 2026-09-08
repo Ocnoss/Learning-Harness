@@ -1,0 +1,8 @@
+{
+  "name": "file-reader",
+  "version": "1.0.0",
+  "description": "读取文本文件内容，支持分页、编码转换",
+  "type": "utility",
+  "recommended_tier": "fast",
+  "recommended_thinking": "low"
+}

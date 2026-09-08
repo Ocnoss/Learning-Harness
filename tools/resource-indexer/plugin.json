@@ -1,0 +1,76 @@
+{
+  "name": "resource-indexer",
+  "version": "1.0.0",
+  "description": "资料索引工具 - 扫描文件夹生成学习资料索引文档",
+  "type": "tool",
+  "author": "",
+  "entry": "main.py",
+  "dependencies": [],
+  "recommended_tier": "fast",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "folder_path": {
+        "type": "string",
+        "description": "要扫描的文件夹绝对路径"
+      },
+      "max_depth": {
+        "type": "integer",
+        "default": 3,
+        "description": "最大递归扫描深度"
+      },
+      "include_extensions": {
+        "type": "array",
+        "items": {"type": "string"},
+        "default": [".pdf", ".doc", ".docx", ".txt", ".md", ".ppt", ".pptx", ".epub", ".mobi"],
+        "description": "包含的文件扩展名列表"
+      },
+      "exclude_patterns": {
+        "type": "array",
+        "items": {"type": "string"},
+        "default": ["node_modules", "__pycache__", ".git", ".venv", "venv"],
+        "description": "排除的文件夹/文件名模式"
+      },
+      "user_context": {
+        "type": "string",
+        "default": "",
+        "description": "用户补充的先验信息（如'这是考研数学资料'）"
+      },
+      "skip_confirmation": {
+        "type": "boolean",
+        "default": false,
+        "description": "跳过二次确认（用户已确认是学习资料）"
+      }
+    },
+    "required": ["folder_path"]
+  },
+  "output_schema": {
+    "type": "object",
+    "properties": {
+      "index_document": {
+        "type": "string",
+        "description": "生成的资料索引文档（Markdown 格式）"
+      },
+      "file_count": {
+        "type": "integer",
+        "description": "扫描到的文件总数"
+      },
+      "folder_structure": {
+        "type": "object",
+        "description": "文件夹层级结构"
+      },
+      "needs_confirmation": {
+        "type": "boolean",
+        "description": "是否需要用户二次确认（检测到可能非学习资料）"
+      },
+      "confirmation_message": {
+        "type": "string",
+        "description": "二次确认提示信息"
+      },
+      "llm_judgment": {
+        "type": "object",
+        "description": "LLM 判断结果（是否学习资料、置信度等）"
+      }
+    }
+  }
+}
