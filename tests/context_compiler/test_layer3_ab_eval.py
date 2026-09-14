@@ -211,6 +211,30 @@ def _build_live_client():
     return LLMClientFactory.create(provider, cfg)
 
 
+async def _live_call(fn):
+    """live 调用的有界重试包装。
+
+    服务商并发拥塞窗口的实测表现：请求排队后连接被网关切断
+    （APIConnectionError，约 45s）或客户端超时（APITimeoutError）——
+    均为瞬态，重试即可骑过拥塞窗口；鉴权/参数等非瞬态错误立即抛出。
+    次数与间隔可用 LH_LIVE_RETRIES（默认 4）/ LH_LIVE_BACKOFF 秒（默认 15）调整。
+    """
+    import openai
+    retries = int(os.environ.get("LH_LIVE_RETRIES", "4"))
+    backoff = float(os.environ.get("LH_LIVE_BACKOFF", "15"))
+    transient = (openai.APIConnectionError, openai.APITimeoutError,
+                 openai.RateLimitError)
+    for attempt in range(retries + 1):
+        try:
+            return await fn()
+        except transient as exc:
+            if attempt == retries:
+                raise
+            print(f"  [retry {attempt + 1}/{retries}] 瞬态 {type(exc).__name__}，"
+                  f"{backoff:g}s 后重试")
+            await asyncio.sleep(backoff)
+
+
 async def test_ab_eval_live():
     """live 模式三臂 A/B：真实 flagship 作答 + 真实裁判，打印实际指标。
 
@@ -231,13 +255,14 @@ async def test_ab_eval_live():
     cache = RubricScoreCache()   # live 同样接 bundle-hash 缓存（避免重复花钱调裁判）
     results: dict[str, ArmResult] = {}
     for name in ("compiled", "full", "recent"):
-        resp = await client.complete([{"role": "user", "content": arms[name]}])
+        resp = await _live_call(
+            lambda: client.complete([{"role": "user", "content": arms[name]}]))
         input_tokens = int((resp.usage or {}).get("prompt_tokens", 0))
         # 与 stub 分支同构：编译臂用 bundle.to_json()（bundle-hash），其余臂用其上下文串
         cache_repr = bundle.to_json() if name == "compiled" else arms[name]
         key = cache.key_for(cache_repr, rubric)
-        score, dims = await judge_answer(client, rubric, GOAL, resp.content,
-                                         cache=cache, cache_key=key)
+        score, dims = await _live_call(lambda: judge_answer(
+            client, rubric, GOAL, resp.content, cache=cache, cache_key=key))
         results[name] = ArmResult(name, input_tokens, score, dims, resp.content)
     print(f"  -> live rubric cache: hits={cache.hits} misses={cache.misses}")
 
