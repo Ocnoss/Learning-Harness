@@ -517,7 +517,94 @@ LLM_MODEL=gpt-4
 }
 ```
 
+## 上下文编译器与三层测试
+
+> 本节对应内核契约 `LH内核契约-v0.1.md` §6.1/§6.2（上下文管理）与 §7（架构验证）。
+> 完整架构决策记录见 [`docs/adr/ADR-0001-context-compiler.md`](docs/adr/ADR-0001-context-compiler.md)。
+
+### 编译器是什么
+
+上下文重建被定位为**编译问题，不是检索问题**（契约 §6.1-2）：
+
+```
+compile(projection, query) -> ContextBundle
+```
+
+输入当前情境（作用域 scope、目标 goal、token 预算、时间锚点 as_of、否定查询、交接包）+ 事件历史的投影，输出 **token 预算约束下的上下文包**。核心工作方式是**按预算沿抽象梯子下潜**（契约 §6.2）：预算紧只装 L3 断言，预算松展开 L2 证据，需要逐字证据且显式允许时再沿指针取 L1 原文；装不下整项则跳过（降级不截断，§7.1-#2）。
+
+`compile` 与 `fold` 是**确定性纯函数**：禁用时钟/随机/IO，时间只走 `query.as_of`，同一输入永远产出逐字节相同的 `replay_digest`——这是 §7.1-#1 重放不变量的实现基础。
+
+### `core/context/` 模块地图
+
+| 模块 | 职责 | 关键符号 |
+|------|------|----------|
+| `envelope.py` | 契约 §2.2 事件信封（frozen，additive 演进） | `LHEvent` |
+| `store.py` | append-only 事件存储协议 + 内存实现；`(scope,verb,topic)→last_ts` 的 O(1) 否定查询索引 | `EventStore` / `InMemoryEventStore` |
+| `tokens.py` | 可注入的确定性 token 估算（默认字符法，tiktoken 推迟） | `TokenEstimator` / `CharBasedEstimator` |
+| `projection.py` | 事件日志的派生只读视图；层级在此**派生**（非事件固有字段）；rebuild/fold 两条等价路径 | `Projection` / `ProjectionItem` / `rebuild` / `fold` / `derive_level` |
+| `compiler.py` | 按预算沿梯子下潜的确定性编译器 | `ContextQuery` / `NegationQuery` / `ContextItem` / `ContextBundle` / `compile` |
+| `event_log_adapter.py` | 既有 `EventLog` → `LHEvent` 的**单向只读**桥接（未来可无痛下线） | `adapt_event_log` |
+
+该子包运行期不 import 任何既有 core 运行时模块（`event_log` 仅在适配器函数体内延迟导入），既有代码也不 import 本子包——零回归、可独立验证。
+
+### 如何运行三层测试
+
+测试分三层（L1 确定性不变量 / L2 模拟学习者黄金场景 / L3 headless LLM-judge A/B），均为**可独立运行的脚本**（末尾 `asyncio.run(main())` 风格，退出码反映通过/失败）。在仓库根目录用解释器直跑：
+
+```bash
+# 第一层：确定性不变量（纯函数，无 LLM/网络/原生依赖/真实时钟）
+python tests/context_compiler/test_layer1_invariants.py
+
+# 第二层：模拟学习者黄金场景（契约 §7.2 五个端到端场景）
+python tests/context_compiler/test_layer2_scenarios.py
+
+# 第三层：headless LLM-judge A/B（默认用测试替身离线回放）
+python tests/context_compiler/test_layer3_ab_eval.py
+
+# 三层一键全跑
+python tests/context_compiler/run_all.py
+```
+
+> 本仓库未安装 pytest，上述脚本均设计为零依赖直跑。Windows PowerShell 下 `python` 若不在 PATH，请用绝对路径 `D:\miniconda\python.exe`（如 `D:\miniconda\python.exe tests/context_compiler/run_all.py`）。`test_*` 函数名仅为“未来 pytest 可发现”的兼容命名；若要用 pytest 跑，需先安装 pytest，**且 layer3 与 layer2 的 `test_scenario_*` 同为 async 协程**，均需 `pytest-asyncio`（否则裸跑 pytest 会静默收集跳过）。因此**明确推荐用 `python tests/context_compiler/run_all.py` 运行三层**。
+
+### §7.1 不变量 → 测试映射（第一层）
+
+| 契约条款 | 测试函数 |
+|----------|----------|
+| §7.1-#1 重放一致 | `test_replay_determinism` / `test_compile_purity` |
+| §7.1-#2 预算不超 + 不截断 | `test_budget_never_exceeded` |
+| §6.2 梯子下潜 | `test_ladder_descent` |
+| §7.1-#6 原始事件不跨作用域 | `test_scope_no_leak` |
+| §2.3 否定式查询 | `test_negation_query` |
+| §7.1-#5 / §5.4 删除无痕迹 | `test_delete_propagation` |
+| §7.1-#7 additive 演进 | `test_additive_schema_replay` |
+| §7.1-#8 事实源不被改写 | `test_store_not_mutated` |
+| 附加：EventLog 单向桥接 | `test_event_log_adapter_bridge` |
+
+### 第三层 live 模式的环境变量门控
+
+第三层默认**离线确定性**：用 `core/stub_llm.py` 的 `StubLLMClient` 顺序回放做确定性评估，不触网、不需 API key；`RecordedLLMClient` / `RecordingLLMClient` 提供磁带领制-回放能力（工厂注册名 `stub` / `recorded`，契约 §8.3“测试替身免费”）。仅当显式开启 live 模式才调用真实 LLM：
+
+```bash
+# PowerShell
+$env:LH_LIVE_LLM = "1"          # 打开 live 门控（默认关闭 → 走替身回放）
+$env:LLM_API_KEY = "your-key"    # live 模式必填
+python tests/context_compiler/run_all.py
+```
+
+```bash
+# bash
+LH_LIVE_LLM=1 LLM_API_KEY=your-key python tests/context_compiler/run_all.py
+```
+
+未设置 `LH_LIVE_LLM` 时，第三层一律走替身回放，保证 CI 与本地零依赖跑绿；`LLM_API_KEY` 缺失时 live 模式会跳过而非报错。
+
+### 为何不用 web 前端做测试
+
+**测试 ≠ 分发**。本切片目标是检验架构、让不变量自动报警（契约 §7.3 fitness functions），不是给学习者做界面。web 前端会引入浏览器/构建/网络不确定性，与“确定性优先”冲突；前端形态属契约 §9-6 的下一阶段待决。详见 [ADR-0001 决策 6](docs/adr/ADR-0001-context-compiler.md)。
+
 ## 版本历史
 
+- v1.2.0 (2026-09)【文档/切片里程碑，非包版本升级；core/__init__.py 的 `__version__` 仍为 `1.0.0`】：上下文编译器薄切片（`core/context/`）+ 三层测试 + ADR-0001
 - v1.1.0 (2026-09-06): 添加多层级模型配置系统（fast/balanced/flagship）
 - v1.0.0 (2026-09-05): 初始架构设计

@@ -35,6 +35,27 @@ from core.workflow import (
     Workflow,
     WorkflowEngine,
 )
+from core.context import (
+    LHEvent,
+    EventStore,
+    InMemoryEventStore,
+    TokenEstimator,
+    CharBasedEstimator,
+    Projection,
+    ProjectionItem,
+    rebuild,
+    fold,
+    derive_level,
+    ContextQuery,
+    ContextItem,
+    ContextBundle,
+    NegationQuery,
+    compile,
+    normalize_scope,
+    is_within_scope,
+    is_descendant_scope,
+    adapt_event_log,
+)
 
 __all__ = [
     # LLM
@@ -75,6 +96,26 @@ __all__ = [
     "WorkflowStep",
     "Workflow",
     "WorkflowEngine",
+    # Context Compiler (core.context)
+    "LHEvent",
+    "EventStore",
+    "InMemoryEventStore",
+    "TokenEstimator",
+    "CharBasedEstimator",
+    "Projection",
+    "ProjectionItem",
+    "rebuild",
+    "fold",
+    "derive_level",
+    "ContextQuery",
+    "ContextItem",
+    "ContextBundle",
+    "NegationQuery",
+    "compile",
+    "normalize_scope",
+    "is_within_scope",
+    "is_descendant_scope",
+    "adapt_event_log",
 ]
 
 __version__ = "1.0.0"

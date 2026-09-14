@@ -104,8 +104,16 @@ class OpenAIClient(LLMClient):
                 "total_tokens": response.usage.total_tokens,
             }
 
+        # 处理 MiMo 等模型的 reasoning_content 字段
+        # 如果 content 为空但 reasoning_content 有值，使用 reasoning_content
+        content = choice.message.content or ""
+        if not content and hasattr(choice.message, 'reasoning_content'):
+            reasoning = getattr(choice.message, 'reasoning_content', None)
+            if reasoning:
+                content = reasoning
+
         return CompletionResponse(
-            content=choice.message.content or "",
+            content=content,
             usage=usage,
             model=response.model,
             raw_response=response,
