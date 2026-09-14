@@ -253,10 +253,16 @@ async def test_ab_eval_live():
     client = _build_live_client()
     rubric = JudgeRubric()
     cache = RubricScoreCache()   # live 同样接 bundle-hash 缓存（避免重复花钱调裁判）
+    # 生成封顶：reasoning 模型不受限时倾向输出超长 markdown，实测在部分网关下
+    # 生成过久触发空闲切断（服务端照计费、客户端拿不到响应）。LH_LIVE_MAX_TOKENS
+    # （如 512）可显著缩短单请求时长；不设则保持模型默认（通用服务商行为不变）。
+    max_tokens_env = os.environ.get("LH_LIVE_MAX_TOKENS")
+    max_tokens = int(max_tokens_env) if max_tokens_env else None
     results: dict[str, ArmResult] = {}
     for name in ("compiled", "full", "recent"):
         resp = await _live_call(
-            lambda: client.complete([{"role": "user", "content": arms[name]}]))
+            lambda: client.complete([{"role": "user", "content": arms[name]}],
+                                    max_tokens=max_tokens))
         input_tokens = int((resp.usage or {}).get("prompt_tokens", 0))
         # 与 stub 分支同构：编译臂用 bundle.to_json()（bundle-hash），其余臂用其上下文串
         cache_repr = bundle.to_json() if name == "compiled" else arms[name]

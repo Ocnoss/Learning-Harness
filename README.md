@@ -597,7 +597,7 @@ python tests/context_compiler/run_all.py
 LH_LIVE_LLM=1 LLM_API_KEY=your-key python tests/context_compiler/run_all.py
 ```
 
-未设置 `LH_LIVE_LLM` 时，第三层一律走替身回放，保证 CI 与本地零依赖跑绿；`LLM_API_KEY` 缺失时 live 模式会跳过而非报错。可选环境变量：`LH_LIVE_PROVIDER`（默认 `openai`，兼容端点用其注册名如 `mimo`/`deepseek`）、`LH_LIVE_MODEL`（默认 `gpt-4o`）、`LH_BASE_URL`（兼容端点地址）、`LH_LIVE_TIMEOUT`（请求超时秒数，默认 60；reasoning 模型或服务商排队时可放宽，如 `240`）。live 调用对瞬态错误（连接被网关切断/超时/限流，服务商并发拥塞窗口的实测表现）有界重试：`LH_LIVE_RETRIES`（默认 4 次）、`LH_LIVE_BACKOFF`（间隔秒数，默认 15）。
+未设置 `LH_LIVE_LLM` 时，第三层一律走替身回放，保证 CI 与本地零依赖跑绿；`LLM_API_KEY` 缺失时 live 模式会跳过而非报错。可选环境变量：`LH_LIVE_PROVIDER`（默认 `openai`，兼容端点用其注册名如 `mimo`/`deepseek`）、`LH_LIVE_MODEL`（默认 `gpt-4o`）、`LH_BASE_URL`（兼容端点地址）、`LH_LIVE_TIMEOUT`（请求超时秒数，默认 60；reasoning 模型或服务商排队时可放宽，如 `240`）、`LH_LIVE_MAX_TOKENS`（单请求生成封顶，如 `512`；reasoning 模型不受限时易超长生成触发网关空闲切断——服务端照计费、客户端拿不到响应，封顶可显著缩短单请求时长）。live 调用对瞬态错误（连接被网关切断/超时/限流，服务商并发拥塞窗口的实测表现）有界重试：`LH_LIVE_RETRIES`（默认 4 次）、`LH_LIVE_BACKOFF`（间隔秒数，默认 15）。
 
 ### 为何不用 web 前端做测试
 
