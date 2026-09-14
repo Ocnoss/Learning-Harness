@@ -202,6 +202,11 @@ def _build_live_client():
     base_url = os.environ.get("LLM_BASE_URL")
     if base_url:
         cfg["base_url"] = base_url
+    # 服务商侧可能排队（reasoning 模型首 token 慢/并发限制），默认 60s 偏紧：
+    # LH_LIVE_TIMEOUT（秒）可按服务商实测放宽
+    timeout = os.environ.get("LH_LIVE_TIMEOUT")
+    if timeout:
+        cfg["timeout"] = float(timeout)
     provider = os.environ.get("LH_LIVE_PROVIDER", "openai")
     return LLMClientFactory.create(provider, cfg)
 

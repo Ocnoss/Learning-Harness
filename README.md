@@ -597,7 +597,7 @@ python tests/context_compiler/run_all.py
 LH_LIVE_LLM=1 LLM_API_KEY=your-key python tests/context_compiler/run_all.py
 ```
 
-未设置 `LH_LIVE_LLM` 时，第三层一律走替身回放，保证 CI 与本地零依赖跑绿；`LLM_API_KEY` 缺失时 live 模式会跳过而非报错。
+未设置 `LH_LIVE_LLM` 时，第三层一律走替身回放，保证 CI 与本地零依赖跑绿；`LLM_API_KEY` 缺失时 live 模式会跳过而非报错。可选环境变量：`LH_LIVE_PROVIDER`（默认 `openai`，兼容端点用其注册名如 `mimo`/`deepseek`）、`LH_LIVE_MODEL`（默认 `gpt-4o`）、`LH_BASE_URL`（兼容端点地址）、`LH_LIVE_TIMEOUT`（请求超时秒数，默认 60；reasoning 模型或服务商排队时可放宽，如 `240`）。
 
 ### 为何不用 web 前端做测试
 
